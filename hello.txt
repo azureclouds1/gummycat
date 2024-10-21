@@ -1,13 +1,1 @@
 This is just an experiment
-
-This is a new line
-
-This is the second line
-
-This is the third line
-
-This is only available in feature1 :D
-
-This is only available in feature2 :>
-
-This is only available in feature3 :X
