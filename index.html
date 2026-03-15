@@ -663,61 +663,63 @@ function drawFlag(flag) {
 }
 
 function drawMario(p) {
-  const x = p.x - camX;
-  const y = p.y;
-  const flip = !p.facingRight;
+  const x = Math.round(p.x - camX);
+  const y = Math.round(p.y);
 
   if (p.invincible > 0 && Math.floor(p.invincible / 4) % 2 === 0) return;
 
-  ctx.save();
-  if (flip) { ctx.scale(-1, 1); }
-  const rx = flip ? -(x + p.w) : x;
-
   const starColor = p.star > 0 ? `hsl(${Date.now() * 0.3 % 360},100%,65%)` : null;
-
   const skin = starColor || COL.marioSkin;
   const hat  = starColor || COL.mario;
   const body = starColor || COL.marioOverall;
-
-  const bigH = p.big ? 64 : 32;
   const scale = p.big ? 2 : 1;
-  ctx.scale(scale, scale);
-  const sx = rx / scale, sy = y / scale;
+  const spriteW = 26 * scale;
 
-  // hat
+  ctx.save();
+  // Flip horizontally around sprite center
+  ctx.translate(x + p.w / 2, 0);
+  if (!p.facingRight) ctx.scale(-1, 1);
+  ctx.translate(-spriteW / 2, 0);
+  ctx.scale(scale, scale);
+
+  // All drawing now at (0, y/scale) as local origin
+  const sy = y / scale;
+  const r = (v) => Math.round(v); // alias
+
+  // hat brim + top
   ctx.fillStyle = hat;
-  ctx.fillRect(sx + 4, sy, 18, 6);
-  ctx.fillRect(sx + 2, sy + 4, 22, 4);
+  ctx.fillRect(r(3),  r(sy),     20, 6);
+  ctx.fillRect(r(1),  r(sy + 4), 24, 4);
   // face
   ctx.fillStyle = skin;
-  ctx.fillRect(sx + 4, sy + 6, 18, 10);
+  ctx.fillRect(r(3),  r(sy + 6), 20, 10);
   // eyes
   ctx.fillStyle = '#000';
-  ctx.fillRect(sx + 14, sy + 8, 4, 4);
+  ctx.fillRect(r(14), r(sy + 8),  5, 4);
   ctx.fillStyle = '#fff';
-  ctx.fillRect(sx + 14, sy + 8, 3, 3);
+  ctx.fillRect(r(14), r(sy + 8),  3, 3);
   // mustache
   ctx.fillStyle = '#7a4000';
-  ctx.fillRect(sx + 6, sy + 14, 14, 3);
-  // body
+  ctx.fillRect(r(5),  r(sy + 14), 16, 3);
+  // body / overalls
   ctx.fillStyle = body;
-  ctx.fillRect(sx + 2, sy + 16, 22, 10);
+  ctx.fillRect(r(1),  r(sy + 16), 24, 10);
   // arms
   ctx.fillStyle = skin;
-  ctx.fillRect(sx, sy + 18, 6, 6);
-  ctx.fillRect(sx + 20, sy + 18, 6, 6);
-  // legs (walking anim)
+  ctx.fillRect(r(-1), r(sy + 18),  6, 6);
+  ctx.fillRect(r(21), r(sy + 18),  6, 6);
+  // legs
   ctx.fillStyle = hat;
   const legOff = p.onGround ? Math.floor(p.animFrame) : 1;
   if (legOff === 0) {
-    ctx.fillRect(sx + 4, sy + 26, 8, 6);
-    ctx.fillRect(sx + 14, sy + 26, 8, 6);
+    ctx.fillRect(r(3),  r(sy + 26), 8, 6);
+    ctx.fillRect(r(15), r(sy + 26), 8, 6);
   } else if (legOff === 1) {
-    ctx.fillRect(sx + 4, sy + 26, 8, 8);
-    ctx.fillRect(sx + 14, sy + 26, 8, 4);
+    ctx.fillRect(r(3),  r(sy + 26), 8, 8);
+    ctx.fillRect(r(15), r(sy + 26), 8, 4);
   } else {
-    ctx.fillRect(sx + 4, sy + 26, 8, 4);
-    ctx.fillRect(sx + 14, sy + 26, 8, 8);
+    ctx.fillRect(r(3),  r(sy + 26), 8, 4);
+    ctx.fillRect(r(15), r(sy + 26), 8, 8);
   }
 
   ctx.restore();
@@ -736,12 +738,11 @@ function render() {
   ctx.restore();
 
   // Clouds (parallax)
-  const cOffset = camX * 0.4;
+  const cOffset = (camX * 0.4) % 3200;
   const cloudDefs = [[100, 60], [350, 40], [600, 80], [900, 50], [1200, 65],
                      [1500, 45], [1800, 75], [2100, 55], [2500, 70], [2800, 40]];
   cloudDefs.forEach(([bx, by]) => {
-    const cx = (bx - cOffset % (level ? level.LEVEL_W : 3200) + level.LEVEL_W) % (level.LEVEL_W) - camX * 0;
-    drawCloud(bx - (camX * 0.4) % 3200, by);
+    drawCloud(bx - cOffset, by);
   });
 
   if (!level) return;
